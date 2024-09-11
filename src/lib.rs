@@ -4,19 +4,48 @@ use std::{
 };
 
 use colog::format::CologStyle;
+pub use colored::Color;
 use colored::Colorize;
 use log::{Level, LevelFilter, Record};
 
-pub fn init_logger(module: Option<&str>, level: LevelFilter) {
+pub struct LoggerConfig {
+    pub module: Option<&'static str>,
+    pub level: LevelFilter,
+    pub file_color: Color,
+    pub line_color: Color,
+}
+
+impl Default for LoggerConfig {
+    fn default() -> Self {
+        Self {
+            module: None,
+            level: LevelFilter::Info,
+            file_color: Color::BrightBlack,
+            line_color: Color::BrightBlue,
+        }
+    }
+}
+
+pub fn init_logger(config: LoggerConfig) {
     let mut builder = env_logger::Builder::new();
-    builder.format(colog::formatter(CustomStatefulLogger::default()));
-    builder.filter(module, level);
+    builder.filter(config.module, config.level);
+    builder.format(colog::formatter(CustomStatefulLogger::new(config)));
     builder.init();
 }
 
 #[derive(Default)]
 pub struct CustomStatefulLogger {
     line: Mutex<usize>,
+    config: LoggerConfig,
+}
+
+impl CustomStatefulLogger {
+    fn new(config: LoggerConfig) -> Self {
+        CustomStatefulLogger {
+            config,
+            ..Default::default()
+        }
+    }
 }
 
 impl CologStyle for CustomStatefulLogger {
@@ -61,8 +90,8 @@ impl CologStyle for CustomStatefulLogger {
             "{} {}\n     {}{}\n",
             prefix,
             record.args().to_string().replace('\n', &sep),
-            file.bright_black(),
-            line.blue()
+            file.color(self.config.file_color),
+            line.color(self.config.line_color)
         ))
     }
 }
