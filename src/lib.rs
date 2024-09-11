@@ -7,10 +7,10 @@ use colog::format::CologStyle;
 use colored::Colorize;
 use log::{Level, LevelFilter, Record};
 
-pub fn init_logger() {
+pub fn init_logger(module: Option<&str>, level: LevelFilter) {
     let mut builder = env_logger::Builder::new();
     builder.format(colog::formatter(CustomStatefulLogger::default()));
-    builder.filter(None, LevelFilter::Trace);
+    builder.filter(module, level);
     builder.init();
 }
 
