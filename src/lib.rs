@@ -6,7 +6,8 @@ use std::{
 use colog::format::CologStyle;
 pub use colored::Color;
 use colored::Colorize;
-use log::{Level, LevelFilter, Record};
+use log::Record;
+pub use log::{debug, error, info, log, trace, warn, Level, LevelFilter};
 
 pub struct LoggerConfig {
     pub module: Option<&'static str>,
