@@ -11,17 +11,34 @@ use log::{Level, LevelFilter, Record};
 pub struct LoggerConfig {
     pub module: Option<&'static str>,
     pub level: LevelFilter,
+    pub num_color: Color,
+    pub timestamp_color: Color,
+    pub timestamp_format: &'static str,
     pub file_color: Color,
     pub line_color: Color,
 }
 
 impl Default for LoggerConfig {
     fn default() -> Self {
+        let dark_blue = Color::TrueColor {
+            r: 50,
+            g: 100,
+            b: 150,
+        };
+        let dark_grey = Color::TrueColor {
+            r: 100,
+            g: 100,
+            b: 100,
+        };
+
         Self {
             module: None,
             level: LevelFilter::Info,
-            file_color: Color::BrightBlack,
-            line_color: Color::BrightBlue,
+            num_color: Color::BrightBlack,
+            timestamp_format: "%H:%M:%S",
+            file_color: dark_grey,
+            line_color: dark_blue,
+            timestamp_color: dark_blue,
         }
     }
 }
@@ -60,10 +77,17 @@ impl CologStyle for CustomStatefulLogger {
     }
 
     fn prefix_token(&self, level: &Level) -> String {
-        let line = self.line.lock().unwrap();
-        let now = chrono::Local::now().format("%H:%M:%S");
+        let line = format!(
+            "{:4}",
+            self.line.lock().expect("Failed to lock log # mutex")
+        );
+        let now = chrono::Local::now().format(self.config.timestamp_format);
 
-        let line = format!("{:4} {}", line, now);
+        let line = format!(
+            "{} {}",
+            line.color(self.config.num_color),
+            now.to_string().color(self.config.timestamp_color)
+        );
         format!(
             "{} {}",
             line,
@@ -76,10 +100,10 @@ impl CologStyle for CustomStatefulLogger {
         buf: &mut env_logger::fmt::Formatter,
         record: &Record<'_>,
     ) -> Result<(), Error> {
-        *self.line.lock().unwrap() += 1;
+        *self.line.lock().expect("Failed to lock log # mutex") += 1;
         let file = record.file().unwrap_or_default().to_string();
         let line = match record.line() {
-            Some(line) => format!(":{}", line.to_string()),
+            Some(line) => format!(":{}", line),
             None => "".to_string(),
         };
         let sep = self.line_separator();
