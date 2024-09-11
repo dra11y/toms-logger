@@ -49,15 +49,20 @@ impl CologStyle for CustomStatefulLogger {
     ) -> Result<(), Error> {
         *self.line.lock().unwrap() += 1;
         let file = record.file().unwrap_or_default().to_string();
+        let line = match record.line() {
+            Some(line) => format!(":{}", line.to_string()),
+            None => "".to_string(),
+        };
         let sep = self.line_separator();
         let prefix = self.prefix_token(&record.level());
 
         // default_format(self, buf, record)
         buf.write_fmt(format_args!(
-            "{} {}\n     {}\n",
+            "{} {}\n     {}{}\n",
             prefix,
             record.args().to_string().replace('\n', &sep),
-            file.bright_black()
+            file.bright_black(),
+            line.green()
         ))
     }
 }
