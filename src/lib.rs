@@ -62,7 +62,7 @@ impl CologStyle for CustomStatefulLogger {
             prefix,
             record.args().to_string().replace('\n', &sep),
             file.bright_black(),
-            line.green()
+            line.blue()
         ))
     }
 }
