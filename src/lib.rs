@@ -10,8 +10,8 @@ use log::Record;
 pub use log::{debug, error, info, log, trace, warn, Level, LevelFilter};
 
 pub struct LoggerConfig {
-    pub module: Option<&'static str>,
-    pub level: LevelFilter,
+    pub module_filter: Option<&'static str>,
+    pub level_filter: LevelFilter,
     pub num_color: Color,
     pub timestamp_color: Color,
     pub timestamp_format: &'static str,
@@ -33,8 +33,8 @@ impl Default for LoggerConfig {
         };
 
         Self {
-            module: None,
-            level: LevelFilter::Info,
+            module_filter: None,
+            level_filter: LevelFilter::Info,
             num_color: Color::BrightBlack,
             timestamp_format: "%H:%M:%S",
             file_color: dark_grey,
@@ -46,7 +46,7 @@ impl Default for LoggerConfig {
 
 pub fn init_logger(config: LoggerConfig) {
     let mut builder = env_logger::Builder::new();
-    builder.filter(config.module, config.level);
+    builder.filter(config.module_filter, config.level_filter);
     builder.format(colog::formatter(CustomStatefulLogger::new(config)));
     builder.init();
 }
